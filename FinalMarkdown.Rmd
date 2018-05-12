@@ -1,29 +1,86 @@
 ---
 title: "Final Markdown"
-author: "Connor Ward""
+author: "Connor Ward"
+date: "11 May 2018"
+professor: "Dr. Schwartz"
 output: html_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+##With waste water treatment facilities potentially reducing the input of access nutrients into the bay, nitrogen levels, and in response the macroalgae blooms, should decrease.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r warning=FALSE, echo=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+monthly <- read_csv("gbmonthly2003_2013.csv")
+monthlydin <- read_csv("monthlydin.csv")
+speciesbydate <- read_csv("speciesbydate.csv")
+fullyyearraw <- read_csv("fullyyearraw.csv")         
 
-```{r cars}
-summary(cars)
+ggplot(monthly, aes(y=GBTotalAlgae, x=NH3NO2NO3))+
+  geom_point()+ylab("Total Algae Collected (g/m3)")+xlab("Dissolved Inorganic Nitrogen (ppm)")+
+  ggtitle("Algae Weight Collected vs. Dissolved Inorganic Nitrogen")
+
+GBNH.lm <- lm(GBTotalAlgae ~ NH3NO2NO3, data=monthly)
+summary(GBNH.lm)
+
+ggplot(monthly, aes(y=GBTotalAlgae, x=Precipitation))+
+  geom_point()+ylab("Total Algae Collected (g/m3)")+xlab("Precipitation (cm)")+
+  ggtitle("Algae Weight Collected vs. Precipitation")
+
+GBPR.lm <- lm(GBTotalAlgae ~ Precipitation, data=monthly)
+summary(GBPR.lm)
+
+ggplot(monthlydin, aes(x=DIN, y=Precipitation))+
+  geom_point()+xlab("Dissolved Inorganic Nitgrogen (ppm)")+ylab("Precipitation (cm)")+
+  ggtitle("Precipitation vs. Dissolved Inorganic Nitrogen")
+
+DIN.lm <- lm(DIN ~ Precipitation, data=monthlydin)
+summary(DIN.lm)
+
+
 ```
 
-## Including Plots
+  The first two graphs do not support the hypothesis that the ammount of macroalgae would increase with levels of dissolved nitrogen, as well as with high precipitation. However the third graph can be viewed as positive, showing that with this paticular data there is no correlation between high precipitation and high nitrogen levels, meaning precipitation is likely only a minor factor in the level of dissolved nitrogen collected.
 
-You can also embed plots, for example:
+```{r ulva, echo=FALSE}
+ggplot(fullyyearraw, aes(x=Date, y=TotalUlva, color=Site))+
+  geom_line()+xlab("Date")+ylab("Total Ulva Collected (g)")+
+  ggtitle("Ulva Blooms Overtime")
+  theme(axis.text.x=element_text(angle=90),
+        text=element_text(size=4))
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+ggplot(monthlydin, aes(x=Year, y=DIN))+
+  geom_point()+xlab("Year")+ylab("Dissolved Inorganic Nitrogen (ppm)")+
+  ggtitle("Dissolved Inorganic Nitrogen Overtime")
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+  As an exploratory analysis, and with Ulva being one of the major macroalgae involved in blooms, I made a graph showing how the amount of Ulva collected at the different stations changed over time. The graph shows another unexpected result, with blooms of Ulva happening much more often in later years. The second graph shows that clearly the ammount of inorganic carbon collected in our samples did not decrease overtime, so yet another theory of what we might find was unsupported in our data.
+
+```{r sites, echo=FALSE}
+plot1 <- ggplot(monthly, aes(y=GBTotalAlgae, x=NH3NO2NO3, color=Month))+
+  geom_point()+ylab("Total Weight (g)")+xlab("Dissolved Nitrogen (ppm)")+
+  ggtitle("Greenwich Bay Total")
+
+plot2 <- ggplot(monthly, aes(y=BudlongTotalAlgaegm3, x=NH3NO2NO3, color=Month))+
+  geom_point()+ylab("Total Weight (g)")+xlab("Dissolved Nitrogen (ppm)")+
+  ggtitle("Budlong")
+
+plot3 <- ggplot(monthly, aes(y=GoddardTotalAlgaegm3, x=NH3NO2NO3, color=Month))+
+  geom_point()+ylab("Total Weight (g)")+xlab("Dissolved Nitrogen (ppm)")+
+  ggtitle("Goddard")
+
+plot4 <- ggplot(monthly, aes(y=OBCTotalAlgaegm3, x=NH3NO2NO3, color=Month))+
+  geom_point()+ylab("Total Weight (g)")+xlab("Dissolved Nitrogen (ppm)")+
+  ggtitle("Oakland Beach")
+
+grid.arrange(plot1,plot2,plot3,plot4)
+```
+
+This last compilation of plots was really just to create a visual to start to look at the sites individually, and compare them to eachother. Oakland Beach had the most blooms out of the three individual sites depicted here, so it would be interesting to see what of the rest of them look like in future analysis.
